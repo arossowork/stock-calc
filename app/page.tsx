@@ -16,9 +16,11 @@ export default function StockOptionsCalculator() {
   
   // Initialize calculation results with useState
   const [stockOptions, setStockOptions] = useState(0);
+  const [dilutedShares, setDilutedShares] = useState(100000);
   const [finalShareValue, setFinalShareValue] = useState(0);
   const [exerciseTaxableAmount, setExerciseTaxableAmount] = useState(0);
   const [exerciseTax, setExerciseTax] = useState(0);
+  const [totalTax, setTotalTax] = useState(0);
   const [capitalGainsTaxableAmount, setCapitalGainsTaxableAmount] = useState(0);
   const [capitalGainsTax, setCapitalGainsTax] = useState(0);
   const [effectiveTaxRate, setEffectiveTaxRate] = useState(0);
@@ -60,14 +62,15 @@ export default function StockOptionsCalculator() {
   // Move calculations to useEffect to avoid hydration mismatch
   useEffect(() => {
     // Calculate the diluted shares after accounting for future
-    const dilutedShares = totalShares / (1 - dilution / 100);
+    const calculatedDilutedShares = totalShares * (1 + (dilution / 100));
+    setDilutedShares(calculatedDilutedShares);
 
     // Calculate the number of stock options based on the percentage of total shares
     const calculatedStockOptions = Math.round(totalShares * (percentageOfStock / 100));
     setStockOptions(calculatedStockOptions);
     
     // Calculate the final share value based on the company's valuation and total shares
-    const calculatedFinalShareValue = valuation / dilutedShares;
+    const calculatedFinalShareValue = valuation / calculatedDilutedShares;
     setFinalShareValue(calculatedFinalShareValue);
     
     // Calculate the taxable amount at exercise (difference between market price at grant and strike price)
@@ -87,18 +90,24 @@ export default function StockOptionsCalculator() {
     setCapitalGainsTax(calculatedCapitalGainsTax);
     
     // Calculate the total tax (sum of exercise tax and capital gains tax)
-    const totalTax = calculatedExerciseTax + calculatedCapitalGainsTax;
+    const calculatedTotalTax = calculatedExerciseTax + calculatedCapitalGainsTax;
+    setTotalTax(calculatedTotalTax);
+
     
     // Calculate the effective tax rate based on the total tax and the gain from exercising the options
-    const calculatedEffectiveTaxRate = totalTax / ((calculatedFinalShareValue - strikePrice) * calculatedStockOptions) * 100 || 0;
+    const calculatedEffectiveTaxRate = calculatedTotalTax / ((calculatedFinalShareValue - strikePrice) * calculatedStockOptions) * 100 || 0;
     setEffectiveTaxRate(calculatedEffectiveTaxRate);
     
     // Calculate the gross equity value
     const calculatedGrossEquityValue = (calculatedFinalShareValue - strikePrice) * calculatedStockOptions;
     setGrossEquityValue(calculatedGrossEquityValue);
+
+    // Calculate the cost of buying the stock options
+    const calculatedCostOfBuyingOptions = strikePrice * calculatedStockOptions;
+    setCostOfBuyingOptions(calculatedCostOfBuyingOptions);
     
     // Calculate the net equity value after tax
-    const calculatedNetEquityValue = calculatedGrossEquityValue - totalTax;
+    const calculatedNetEquityValue = calculatedGrossEquityValue - calculatedTotalTax - calculatedCostOfBuyingOptions;
     setNetEquityValue(calculatedNetEquityValue);
     
     // Calculate the yearly equity value assuming accelerated vesting on exit
@@ -124,10 +133,6 @@ export default function StockOptionsCalculator() {
     // Calculate the difference between total compensation and standard yearly compensation
     const calculatedCompensationDifference = calculatedTotalYearlyComp - calculatedStandardYearlyComp;
     setCompensationDifference(calculatedCompensationDifference);
-
-    // Calculate the cost of buying the stock options
-    const calculatedCostOfBuyingOptions = strikePrice * calculatedStockOptions;
-    setCostOfBuyingOptions(calculatedCostOfBuyingOptions);
     
   }, [percentageOfStock, strikePrice, marketPriceAtGrant, valuation, dilution, weeklyHours, hourlyPay, standardHourlyPay, exitProbability, soldAfterYears]);
 
@@ -206,7 +211,7 @@ export default function StockOptionsCalculator() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="font-semibold text-lg">Equity Calculations</h3>
-            <p>Final Share Value: €{formatNumber(finalShareValue)}</p>
+            <p>Final Share Value: €{formatNumber(finalShareValue)} on {formatNumber(dilutedShares)} fully diluted shares</p>
             <p>Gross Equity Value: €{formatNumber(grossEquityValue)}</p>
             <p>Cost of Buying Options: €{formatNumber(costOfBuyingOptions)}</p>
             <div className="mt-2 p-2 bg-yellow-100 rounded-sm">
@@ -215,9 +220,10 @@ export default function StockOptionsCalculator() {
                 <p>Employment Income Tax (at exercise): €{formatNumber(exerciseTax)} ({employmentIncomeTaxRate}% on €{formatNumber(exerciseTaxableAmount)})</p>
               )}
               <p>Capital Gains Tax (at sale): €{formatNumber(capitalGainsTax)} ({capitalGainsTaxRate}% on €{formatNumber(capitalGainsTaxableAmount)})</p>
+              <p>Total Tax: €{formatNumber(totalTax)}</p>
               <p>Effective Tax Rate: {isHydrated ? effectiveTaxRate.toFixed(2) : "0"}%</p>
             </div>
-            <p>Net Equity Value (after tax): €{formatNumber(netEquityValue)}</p>
+            <p>Net Equity Value (after tax and buying): €{formatNumber(netEquityValue)}</p>
             <p>Weighted Net Equity Value ({exitProbability}% probability): €{formatNumber(weightedNetEquityValue)}</p>
             <p>Yearly Net Equity Value: €{formatNumber(yearlyEquityValue)}</p>
           </div>
