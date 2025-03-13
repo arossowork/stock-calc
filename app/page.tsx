@@ -4,11 +4,15 @@ import { useState, useEffect } from "react";
 
 export default function StockOptionsCalculator() {
   const [salary, setSalary] = useState(7500);
+  const [weeklyHours, setWeeklyHours] = useState(40);
+  const [hourlyPay, setHourlyPay] = useState(25);
+  const [standardHourlyPay, setStandardHourlyPay] = useState(20);
   const [percentageOfStock, setPercentageOfStock] = useState(1);
   const [strikePrice, setStrikePrice] = useState(0);
   const [marketPriceAtGrant, setMarketPriceAtGrant] = useState(0);
   const [valuation, setValuation] = useState(10000000);
   const [dilution, setDilution] = useState(30);
+  const [exitProbability, setExitProbability] = useState(50);
   
   // Initialize calculation results with useState
   const [stockOptions, setStockOptions] = useState(0);
@@ -22,11 +26,16 @@ export default function StockOptionsCalculator() {
   const [netEquityValue, setNetEquityValue] = useState(0);
   const [yearlyEquityValue, setYearlyEquityValue] = useState(0);
   const [totalYearlyComp, setTotalYearlyComp] = useState(0);
+  const [yearlyHourlyComp, setYearlyHourlyComp] = useState(0);
+  const [standardYearlyComp, setStandardYearlyComp] = useState(0);
+  const [compensationDifference, setCompensationDifference] = useState(0);
+  const [weightedNetEquityValue, setWeightedNetEquityValue] = useState(0);
 
   // Fixed values
   const totalShares = 100000;
   const capitalGainsTaxRate = 26; // Italian capital gains tax rate
   const employmentIncomeTaxRate = 43; // Italian highest marginal tax rate for employment income
+  const weeksPerYear = 52;
   
   // Move calculations to useEffect to avoid hydration mismatch
   useEffect(() => {
@@ -75,21 +84,52 @@ export default function StockOptionsCalculator() {
     // Calculate the yearly equity value assuming a 4-year vesting period
     const calculatedYearlyEquityValue = calculatedNetEquityValue / 4;
     setYearlyEquityValue(calculatedYearlyEquityValue);
-  
     
-    // Calculate the total yearly compensation (salary + yearly equity value)
-    const calculatedTotalYearlyComp = salary + calculatedYearlyEquityValue;
+    // Calculate yearly compensation from hourly pay
+    const calculatedYearlyHourlyComp = hourlyPay * weeklyHours * weeksPerYear;
+    setYearlyHourlyComp(calculatedYearlyHourlyComp);
+    
+    // Calculate yearly compensation from standard position
+    const calculatedStandardYearlyComp = standardHourlyPay * weeklyHours * weeksPerYear;
+    setStandardYearlyComp(calculatedStandardYearlyComp);
+    
+    // Calculate weighted net equity value based on exit probability
+    const calculatedWeightedNetEquityValue = (exitProbability / 100) * calculatedNetEquityValue;
+    setWeightedNetEquityValue(calculatedWeightedNetEquityValue);
+    
+    // Calculate the total yearly compensation (hourly pay + yearly weighted equity value)
+    const calculatedTotalYearlyComp = calculatedYearlyHourlyComp + calculatedYearlyEquityValue * (exitProbability / 100);
     setTotalYearlyComp(calculatedTotalYearlyComp);
-  }, [salary, percentageOfStock, strikePrice, marketPriceAtGrant, valuation, dilution]);
+    
+    // Calculate the difference between total compensation and standard yearly compensation
+    const calculatedCompensationDifference = calculatedTotalYearlyComp - calculatedStandardYearlyComp;
+    setCompensationDifference(calculatedCompensationDifference);
+    
+  }, [salary, percentageOfStock, strikePrice, marketPriceAtGrant, valuation, dilution, weeklyHours, hourlyPay, standardHourlyPay, exitProbability]);
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold">Stock Options Calculator</h1>
       <div className="grid grid-cols-2 gap-4 mt-4">
         <div>
-          <label>Net Yearly Salary (€)</label>
-          <input type="number" value={salary} onChange={(e) => setSalary(Number(e.target.value))} className="border p-2 w-full" />
-          <p className="text-sm text-gray-500 mt-1">Your annual pre-tax salary in EUR</p>
+          <label>Weekly Hours</label>
+          <input type="number" value={weeklyHours} onChange={(e) => setWeeklyHours(Number(e.target.value))} className="border p-2 w-full" />
+          <p className="text-sm text-gray-500 mt-1">Hours you work per week</p>
+        </div>
+        <div>
+          <label>Net Hourly Pay (€)</label>
+          <input type="number" value={hourlyPay} onChange={(e) => setHourlyPay(Number(e.target.value))} className="border p-2 w-full" step="0.01" />
+          <p className="text-sm text-gray-500 mt-1">Your net hourly compensation</p>
+        </div>
+        <div>
+          <label>Standard Net Hourly Pay (€)</label>
+          <input type="number" value={standardHourlyPay} onChange={(e) => setStandardHourlyPay(Number(e.target.value))} className="border p-2 w-full" step="0.01" />
+          <p className="text-sm text-gray-500 mt-1">Net hourly pay for a standard position</p>
+        </div>
+        <div>
+          <label>Exit Probability (%)</label>
+          <input type="number" value={exitProbability} onChange={(e) => setExitProbability(Number(e.target.value))} className="border p-2 w-full" min="0" max="100" />
+          <p className="text-sm text-gray-500 mt-1">Probability of successful exit (0-100%)</p>
         </div>
         <div>
           <label>Percentage of Stock Options (%)</label>
@@ -128,19 +168,33 @@ export default function StockOptionsCalculator() {
       </div>
       <div className="mt-6 p-4 bg-gray-100 rounded">
         <h2 className="text-xl font-bold">Results</h2>
-        <p>Final Share Value: €{finalShareValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-        <p>Gross Equity Value: €{grossEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-        <div className="mt-2 p-2 bg-yellow-100 rounded-sm">
-          <p className="font-semibold">Tax Breakdown:</p>
-          {exerciseTaxableAmount > 0 && (
-            <p>Employment Income Tax (at exercise): €{exerciseTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({employmentIncomeTaxRate}% on €{exerciseTaxableAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</p>
-          )}
-          <p>Capital Gains Tax (at sale): €{capitalGainsTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({capitalGainsTaxRate}% on €{capitalGainsTaxableAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</p>
-          <p>Effective Tax Rate: {effectiveTaxRate.toFixed(2)}%</p>
+        <div className="grid grid-cols-2 gap-4 mt-2">
+          <div>
+            <h3 className="font-semibold">Equity Calculations</h3>
+            <p>Final Share Value: €{finalShareValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p>Gross Equity Value: €{grossEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <div className="mt-2 p-2 bg-yellow-100 rounded-sm">
+              <p className="font-semibold">Tax Breakdown:</p>
+              {exerciseTaxableAmount > 0 && (
+                <p>Employment Income Tax (at exercise): €{exerciseTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({employmentIncomeTaxRate}% on €{exerciseTaxableAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</p>
+              )}
+              <p>Capital Gains Tax (at sale): €{capitalGainsTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({capitalGainsTaxRate}% on €{capitalGainsTaxableAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</p>
+              <p>Effective Tax Rate: {effectiveTaxRate.toFixed(2)}%</p>
+            </div>
+            <p>Net Equity Value (after tax): €{netEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p>Weighted Net Equity Value ({exitProbability}% probability): €{weightedNetEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p>Yearly Net Equity Value: €{yearlyEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+          </div>
+          <div>
+            <h3 className="font-semibold">Compensation Comparison</h3>
+            <p>Yearly Income from Hourly Pay: €{yearlyHourlyComp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p>Standard Position Yearly Income: €{standardYearlyComp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p>Total Yearly Compensation (with equity): €{totalYearlyComp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className={compensationDifference >= 0 ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
+              Difference vs. Standard Position: €{compensationDifference.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
+          </div>
         </div>
-        <p>Net Equity Value (after tax): €{netEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-        <p>Yearly Net Equity Value: €{yearlyEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-        <p>Total Yearly Compensation: €{totalYearlyComp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
       </div>
     </div>
   );
