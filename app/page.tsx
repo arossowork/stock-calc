@@ -5,11 +5,11 @@ import { useState, useEffect } from "react";
 export default function StockOptionsCalculator() {
   const [weeklyHours, setWeeklyHours] = useState(12);
   const [hourlyPay, setHourlyPay] = useState(12);
-  const [standardHourlyPay, setStandardHourlyPay] = useState(20);
+  const [standardHourlyPay, setStandardHourlyPay] = useState(24);
   const [percentageOfStock, setPercentageOfStock] = useState(8);
   const [strikePrice, setStrikePrice] = useState(10);
   const [marketPriceAtGrant, setMarketPriceAtGrant] = useState(30);
-  const [valuation, setValuation] = useState(50000000);
+  const [valuation, setValuation] = useState(5000000);
   const [dilution, setDilution] = useState(30);
   const [exitProbability, setExitProbability] = useState(20);
   
@@ -177,7 +177,12 @@ export default function StockOptionsCalculator() {
         </div>
         <div>
           <label className="block text-lg font-semibold">Expected Company Valuation (€)</label>
-          <input type="number" value={valuation} onChange={(e) => setValuation(Number(e.target.value))} className="border p-2 w-full rounded-lg" />
+          <input 
+            type="text" 
+            value={isHydrated ? valuation.toLocaleString('en-US') : "0"} 
+            onChange={(e) => setValuation(Number(e.target.value.replace(/,/g, '')))} 
+            className="border p-2 w-full rounded-lg" 
+            />
           <p className="text-sm text-gray-500 mt-1">Estimated future company value at liquidity event</p>
         </div>
         <div>
