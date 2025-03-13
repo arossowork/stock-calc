@@ -30,6 +30,8 @@ export default function StockOptionsCalculator() {
   const [standardYearlyComp, setStandardYearlyComp] = useState(0);
   const [compensationDifference, setCompensationDifference] = useState(0);
   const [weightedNetEquityValue, setWeightedNetEquityValue] = useState(0);
+  // Add state to track if component is hydrated
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Fixed values
   const totalShares = 100000;
@@ -37,6 +39,23 @@ export default function StockOptionsCalculator() {
   const employmentIncomeTaxRate = 43; // Italian highest marginal tax rate for employment income
   const weeksPerYear = 52;
   
+  // Format number to prevent hydration mismatch
+  const formatNumber = (num: number) => {
+    if (!isHydrated) return "0";
+    return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  // Simple number formatting for integers (like stock options)
+  const formatInteger = (num: number) => {
+    if (!isHydrated) return "0";
+    return num.toLocaleString();
+  };
+  
+  // Set hydrated state once component mounts
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   // Move calculations to useEffect to avoid hydration mismatch
   useEffect(() => {
     // Calculate the diluted shares after accounting for future
@@ -163,7 +182,7 @@ export default function StockOptionsCalculator() {
           <p className="text-sm text-gray-500 mt-1">Expected ownership dilution from future funding rounds</p>
         </div>
         <div className="col-span-2">
-          <p className="text-sm text-gray-500">Based on {totalShares.toLocaleString()} fully diluted shares, {percentageOfStock}% equals {stockOptions.toLocaleString()} stock options</p>
+          <p className="text-sm text-gray-500">Based on {formatInteger(totalShares)} fully diluted shares, {percentageOfStock}% equals {formatInteger(stockOptions)} stock options</p>
         </div>
       </div>
       <div className="mt-6 p-4 bg-gray-100 rounded">
@@ -171,27 +190,27 @@ export default function StockOptionsCalculator() {
         <div className="grid grid-cols-2 gap-4 mt-2">
           <div>
             <h3 className="font-semibold">Equity Calculations</h3>
-            <p>Final Share Value: €{finalShareValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-            <p>Gross Equity Value: €{grossEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p>Final Share Value: €{formatNumber(finalShareValue)}</p>
+            <p>Gross Equity Value: €{formatNumber(grossEquityValue)}</p>
             <div className="mt-2 p-2 bg-yellow-100 rounded-sm">
               <p className="font-semibold">Tax Breakdown:</p>
               {exerciseTaxableAmount > 0 && (
-                <p>Employment Income Tax (at exercise): €{exerciseTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({employmentIncomeTaxRate}% on €{exerciseTaxableAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</p>
+                <p>Employment Income Tax (at exercise): €{formatNumber(exerciseTax)} ({employmentIncomeTaxRate}% on €{formatNumber(exerciseTaxableAmount)})</p>
               )}
-              <p>Capital Gains Tax (at sale): €{capitalGainsTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({capitalGainsTaxRate}% on €{capitalGainsTaxableAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})</p>
-              <p>Effective Tax Rate: {effectiveTaxRate.toFixed(2)}%</p>
+              <p>Capital Gains Tax (at sale): €{formatNumber(capitalGainsTax)} ({capitalGainsTaxRate}% on €{formatNumber(capitalGainsTaxableAmount)})</p>
+              <p>Effective Tax Rate: {isHydrated ? effectiveTaxRate.toFixed(2) : "0"}%</p>
             </div>
-            <p>Net Equity Value (after tax): €{netEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-            <p>Weighted Net Equity Value ({exitProbability}% probability): €{weightedNetEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-            <p>Yearly Net Equity Value: €{yearlyEquityValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p>Net Equity Value (after tax): €{formatNumber(netEquityValue)}</p>
+            <p>Weighted Net Equity Value ({exitProbability}% probability): €{formatNumber(weightedNetEquityValue)}</p>
+            <p>Yearly Net Equity Value: €{formatNumber(yearlyEquityValue)}</p>
           </div>
           <div>
             <h3 className="font-semibold">Compensation Comparison</h3>
-            <p>Yearly Income from Hourly Pay: €{yearlyHourlyComp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-            <p>Standard Position Yearly Income: €{standardYearlyComp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-            <p>Total Yearly Compensation (with equity): €{totalYearlyComp.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p>Yearly Income from Hourly Pay: €{formatNumber(yearlyHourlyComp)}</p>
+            <p>Standard Position Yearly Income: €{formatNumber(standardYearlyComp)}</p>
+            <p>Total Yearly Compensation (with equity): €{formatNumber(totalYearlyComp)}</p>
             <p className={compensationDifference >= 0 ? "text-green-600 font-bold" : "text-red-600 font-bold"}>
-              Difference vs. Standard Position: €{compensationDifference.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              Difference vs. Standard Position: €{formatNumber(compensationDifference)}
             </p>
           </div>
         </div>
