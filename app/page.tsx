@@ -28,12 +28,13 @@ export default function StockOptionsCalculator() {
   const [grossSoldStockValue, setGrossSoldStockValue] = useState(0);
   const [netEquityValue, setNetEquityValue] = useState(0);
   const [netSoldValue, setNetSoldValue] = useState(0);
-  const [yearlyEquityValue, setYearlyEquityValue] = useState(0);
+  const [yearlySoldValue, setYearlySoldValue] = useState(0);
   const [totalYearlyComp, setTotalYearlyComp] = useState(0);
   const [yearlyHourlyComp, setYearlyHourlyComp] = useState(0);
   const [standardYearlyComp, setStandardYearlyComp] = useState(0);
   const [compensationDifference, setCompensationDifference] = useState(0);
-  const [weightedNetEquityValue, setWeightedNetEquityValue] = useState(0);
+  const [weightedNetSoldValue, setWeightedNetSoldValue] = useState(0);
+  const [weightedYearlyNetSoldValue, setWeightedYearlyNetSoldValue] = useState(0);
   const [costOfBuyingOptions, setCostOfBuyingOptions] = useState(0);
   // Add state to track if component is hydrated
   const [isHydrated, setIsHydrated] = useState(false);
@@ -124,8 +125,8 @@ export default function StockOptionsCalculator() {
     setNetSoldValue(calculatedNetSoldValue);
     
     // Calculate the yearly equity value assuming accelerated vesting on exit
-    const calculatedYearlyEquityValue = calculatedNetSoldValue / soldAfterYears;
-    setYearlyEquityValue(calculatedYearlyEquityValue);
+    const calculatedYearlySoldValue = calculatedNetSoldValue / soldAfterYears;
+    setYearlySoldValue(calculatedYearlySoldValue);
     
     // Calculate yearly compensation from hourly pay
     const calculatedYearlyHourlyComp = hourlyPay * weeklyHours * weeksPerYear;
@@ -135,12 +136,16 @@ export default function StockOptionsCalculator() {
     const calculatedStandardYearlyComp = standardHourlyPay * weeklyHours * weeksPerYear;
     setStandardYearlyComp(calculatedStandardYearlyComp);
     
-    // Calculate weighted net equity value based on exit probability
-    const calculatedWeightedNetEquityValue = (exitProbability / 100) * calculatedNetSoldValue;
-    setWeightedNetEquityValue(calculatedWeightedNetEquityValue);
+    // Calculate weighted net sold value based on exit probability
+    const calculatedWeightedNetSoldValue = (exitProbability / 100) * calculatedNetSoldValue;
+    setWeightedNetSoldValue(calculatedWeightedNetSoldValue);
+
+    // Calculate the weighted yearly net sold value based on exit probability
+    const calculatedWeightedYearlyNetSoldValue = (exitProbability / 100) * calculatedYearlySoldValue;
+    setWeightedYearlyNetSoldValue(calculatedWeightedYearlyNetSoldValue);
     
     // Calculate the total yearly compensation (hourly pay + yearly weighted equity value)
-    const calculatedTotalYearlyComp = calculatedYearlyHourlyComp + calculatedYearlyEquityValue * (exitProbability / 100);
+    const calculatedTotalYearlyComp = calculatedYearlyHourlyComp + calculatedYearlySoldValue * (exitProbability / 100);
     setTotalYearlyComp(calculatedTotalYearlyComp);
     
     // Calculate the difference between total compensation and standard yearly compensation
@@ -254,8 +259,9 @@ export default function StockOptionsCalculator() {
             </div>
             <p>Net Equity Value (after tax): €{formatNumber(netEquityValue)}</p>
             <p>Net Sold Value (after tax and buying): €{formatNumber(netSoldValue)}</p>
-            <p>Weighted Net Equity Value ({exitProbability}% probability): €{formatNumber(weightedNetEquityValue)}</p>
-            <p>Yearly Net Equity Value: €{formatNumber(yearlyEquityValue)}</p>
+            <p>Weighted Net Sold Value ({exitProbability}% probability): €{formatNumber(weightedNetSoldValue)}</p>
+            <p>Yearly Net Sold Value: €{formatNumber(yearlySoldValue)}</p>
+            <p>Weighted Yearly Net Sold Value ({exitProbability}% probability): €{formatNumber(weightedYearlyNetSoldValue)}</p>
           </div>
           <div>
             <h3 className="font-semibold text-lg">Compensation Comparison</h3>
