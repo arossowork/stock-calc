@@ -3,16 +3,15 @@
 import { useState, useEffect } from "react";
 
 export default function StockOptionsCalculator() {
-  const [salary, setSalary] = useState(7500);
-  const [weeklyHours, setWeeklyHours] = useState(40);
-  const [hourlyPay, setHourlyPay] = useState(25);
+  const [weeklyHours, setWeeklyHours] = useState(12);
+  const [hourlyPay, setHourlyPay] = useState(12);
   const [standardHourlyPay, setStandardHourlyPay] = useState(20);
-  const [percentageOfStock, setPercentageOfStock] = useState(1);
-  const [strikePrice, setStrikePrice] = useState(0);
-  const [marketPriceAtGrant, setMarketPriceAtGrant] = useState(0);
-  const [valuation, setValuation] = useState(10000000);
+  const [percentageOfStock, setPercentageOfStock] = useState(8);
+  const [strikePrice, setStrikePrice] = useState(10);
+  const [marketPriceAtGrant, setMarketPriceAtGrant] = useState(30);
+  const [valuation, setValuation] = useState(50000000);
   const [dilution, setDilution] = useState(30);
-  const [exitProbability, setExitProbability] = useState(50);
+  const [exitProbability, setExitProbability] = useState(20);
   
   // Initialize calculation results with useState
   const [stockOptions, setStockOptions] = useState(0);
@@ -30,6 +29,7 @@ export default function StockOptionsCalculator() {
   const [standardYearlyComp, setStandardYearlyComp] = useState(0);
   const [compensationDifference, setCompensationDifference] = useState(0);
   const [weightedNetEquityValue, setWeightedNetEquityValue] = useState(0);
+  const [costOfBuyingOptions, setCostOfBuyingOptions] = useState(0);
   // Add state to track if component is hydrated
   const [isHydrated, setIsHydrated] = useState(false);
 
@@ -123,75 +123,81 @@ export default function StockOptionsCalculator() {
     // Calculate the difference between total compensation and standard yearly compensation
     const calculatedCompensationDifference = calculatedTotalYearlyComp - calculatedStandardYearlyComp;
     setCompensationDifference(calculatedCompensationDifference);
+
+    // Calculate the cost of buying the stock options
+    const calculatedCostOfBuyingOptions = strikePrice * calculatedStockOptions;
+    setCostOfBuyingOptions(calculatedCostOfBuyingOptions);
     
-  }, [salary, percentageOfStock, strikePrice, marketPriceAtGrant, valuation, dilution, weeklyHours, hourlyPay, standardHourlyPay, exitProbability]);
+  }, [percentageOfStock, strikePrice, marketPriceAtGrant, valuation, dilution, weeklyHours, hourlyPay, standardHourlyPay, exitProbability]);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold">Stock Options Calculator</h1>
-      <div className="grid grid-cols-2 gap-4 mt-4">
+    <div className="container mx-auto p-4 bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen text-white">
+      <h1 className="text-4xl font-extrabold text-center mb-8">Stock Options Calculator</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 bg-white p-6 rounded-lg shadow-lg text-gray-800">
         <div>
-          <label>Weekly Hours</label>
-          <input type="number" value={weeklyHours} onChange={(e) => setWeeklyHours(Number(e.target.value))} className="border p-2 w-full" />
+          <label className="block text-lg font-semibold">Weekly Hours</label>
+          <input type="number" value={weeklyHours} onChange={(e) => setWeeklyHours(Number(e.target.value))} className="border p-2 w-full rounded-lg" />
           <p className="text-sm text-gray-500 mt-1">Hours you work per week</p>
         </div>
         <div>
-          <label>Net Hourly Pay (€)</label>
-          <input type="number" value={hourlyPay} onChange={(e) => setHourlyPay(Number(e.target.value))} className="border p-2 w-full" step="0.01" />
+          <label className="block text-lg font-semibold">Net Hourly Pay (€)</label>
+          <input type="number" value={hourlyPay} onChange={(e) => setHourlyPay(Number(e.target.value))} className="border p-2 w-full rounded-lg" step="0.01" />
           <p className="text-sm text-gray-500 mt-1">Your net hourly compensation</p>
         </div>
         <div>
-          <label>Standard Net Hourly Pay (€)</label>
-          <input type="number" value={standardHourlyPay} onChange={(e) => setStandardHourlyPay(Number(e.target.value))} className="border p-2 w-full" step="0.01" />
+          <label className="block text-lg font-semibold">Standard Net Hourly Pay (€)</label>
+          <input type="number" value={standardHourlyPay} onChange={(e) => setStandardHourlyPay(Number(e.target.value))} className="border p-2 w-full rounded-lg" step="0.01" />
           <p className="text-sm text-gray-500 mt-1">Net hourly pay for a standard position</p>
         </div>
         <div>
-          <label>Exit Probability (%)</label>
-          <input type="number" value={exitProbability} onChange={(e) => setExitProbability(Number(e.target.value))} className="border p-2 w-full" min="0" max="100" />
+          <label className="block text-lg font-semibold">Exit Probability (%)</label>
+          <input type="number" value={exitProbability} onChange={(e) => setExitProbability(Number(e.target.value))} className="border p-2 w-full rounded-lg" min="0" max="100" />
           <p className="text-sm text-gray-500 mt-1">Probability of successful exit (0-100%)</p>
         </div>
         <div>
-          <label>Percentage of Stock Options (%)</label>
+          <label className="block text-lg font-semibold">Percentage of Stock Options (%)</label>
           <input 
             type="number" 
             value={percentageOfStock} 
             onChange={(e) => setPercentageOfStock(Number(e.target.value))} 
-            className="border p-2 w-full" 
+            className="border p-2 w-full rounded-lg" 
             step="0.01"
           />
           <p className="text-sm text-gray-500 mt-1">Percentage of total company stock (equity)</p>
         </div>
         <div>
-          <label>Strike Price (€)</label>
-          <input type="number" value={strikePrice} onChange={(e) => setStrikePrice(Number(e.target.value))} className="border p-2 w-full" />
+          <label className="block text-lg font-semibold">Strike Price (€)</label>
+          <input type="number" value={strikePrice} onChange={(e) => setStrikePrice(Number(e.target.value))} className="border p-2 w-full rounded-lg" />
           <p className="text-sm text-gray-500 mt-1">Price you'll pay to exercise each option</p>
         </div>
         <div>
-          <label>Market Price at Grant (€)</label>
-          <input type="number" value={marketPriceAtGrant} onChange={(e) => setMarketPriceAtGrant(Number(e.target.value))} className="border p-2 w-full" />
+          <label className="block text-lg font-semibold">Market Price at Grant (€)</label>
+          <input type="number" value={marketPriceAtGrant} onChange={(e) => setMarketPriceAtGrant(Number(e.target.value))} className="border p-2 w-full rounded-lg" />
           <p className="text-sm text-gray-500 mt-1">Fair market value of each share when options were granted</p>
         </div>
         <div>
-          <label>Expected Company Valuation (€)</label>
-          <input type="number" value={valuation} onChange={(e) => setValuation(Number(e.target.value))} className="border p-2 w-full" />
+          <label className="block text-lg font-semibold">Expected Company Valuation (€)</label>
+          <input type="number" value={valuation} onChange={(e) => setValuation(Number(e.target.value))} className="border p-2 w-full rounded-lg" />
           <p className="text-sm text-gray-500 mt-1">Estimated future company value at liquidity event</p>
         </div>
         <div>
-          <label>Expected Additional Dilution (%)</label>
-          <input type="number" value={dilution} onChange={(e) => setDilution(Number(e.target.value))} className="border p-2 w-full" />
-          <p className="text-sm text-gray-500 mt-1">Expected ownership dilution from future funding rounds</p>
+          <label className="block text-lg font-semibold">Expected Additional Dilution (%)</label>
+          <input type="number" value={dilution} onChange={(e) => setDilution(Number(e.target.value))} className="border p-2 w-full rounded-lg" />
+            <p className="text-sm text-gray-500 mt-1">Expected ownership dilution from future funding rounds</p>
+            <p className="text-sm text-gray-500 mt-1">Example: If you expect 3 rounds of funding with 10% dilution each, set this to 30%</p>
         </div>
-        <div className="col-span-2">
+        <div className="col-span-1 md:col-span-2">
           <p className="text-sm text-gray-500">Based on {formatInteger(totalShares)} fully diluted shares, {percentageOfStock}% equals {formatInteger(stockOptions)} stock options</p>
         </div>
       </div>
-      <div className="mt-6 p-4 bg-gray-100 rounded">
-        <h2 className="text-xl font-bold">Results</h2>
-        <div className="grid grid-cols-2 gap-4 mt-2">
+      <div className="mt-6 p-6 bg-white rounded-lg shadow-lg text-gray-800">
+        <h2 className="text-2xl font-bold mb-4">Results</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="font-semibold">Equity Calculations</h3>
+            <h3 className="font-semibold text-lg">Equity Calculations</h3>
             <p>Final Share Value: €{formatNumber(finalShareValue)}</p>
             <p>Gross Equity Value: €{formatNumber(grossEquityValue)}</p>
+            <p>Cost of Buying Options: €{formatNumber(costOfBuyingOptions)}</p>
             <div className="mt-2 p-2 bg-yellow-100 rounded-sm">
               <p className="font-semibold">Tax Breakdown:</p>
               {exerciseTaxableAmount > 0 && (
@@ -205,7 +211,7 @@ export default function StockOptionsCalculator() {
             <p>Yearly Net Equity Value: €{formatNumber(yearlyEquityValue)}</p>
           </div>
           <div>
-            <h3 className="font-semibold">Compensation Comparison</h3>
+            <h3 className="font-semibold text-lg">Compensation Comparison</h3>
             <p>Yearly Income from Hourly Pay: €{formatNumber(yearlyHourlyComp)}</p>
             <p>Standard Position Yearly Income: €{formatNumber(standardYearlyComp)}</p>
             <p>Total Yearly Compensation (with equity): €{formatNumber(totalYearlyComp)}</p>
