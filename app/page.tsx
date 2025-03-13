@@ -12,6 +12,7 @@ export default function StockOptionsCalculator() {
   const [valuation, setValuation] = useState(5000000);
   const [dilution, setDilution] = useState(30);
   const [exitProbability, setExitProbability] = useState(20);
+  const [soldAfterYears, setSoldAfterYears] = useState(4); // New state for sold after years
   
   // Initialize calculation results with useState
   const [stockOptions, setStockOptions] = useState(0);
@@ -100,8 +101,8 @@ export default function StockOptionsCalculator() {
     const calculatedNetEquityValue = calculatedGrossEquityValue - totalTax;
     setNetEquityValue(calculatedNetEquityValue);
     
-    // Calculate the yearly equity value assuming a 4-year vesting period
-    const calculatedYearlyEquityValue = calculatedNetEquityValue / 4;
+    // Calculate the yearly equity value assuming accelerated vesting on exit
+    const calculatedYearlyEquityValue = calculatedNetEquityValue / soldAfterYears;
     setYearlyEquityValue(calculatedYearlyEquityValue);
     
     // Calculate yearly compensation from hourly pay
@@ -128,7 +129,7 @@ export default function StockOptionsCalculator() {
     const calculatedCostOfBuyingOptions = strikePrice * calculatedStockOptions;
     setCostOfBuyingOptions(calculatedCostOfBuyingOptions);
     
-  }, [percentageOfStock, strikePrice, marketPriceAtGrant, valuation, dilution, weeklyHours, hourlyPay, standardHourlyPay, exitProbability]);
+  }, [percentageOfStock, strikePrice, marketPriceAtGrant, valuation, dilution, weeklyHours, hourlyPay, standardHourlyPay, exitProbability, soldAfterYears]);
 
   return (
     <div className="container mx-auto p-4 bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen text-white">
@@ -190,6 +191,11 @@ export default function StockOptionsCalculator() {
           <input type="number" value={dilution} onChange={(e) => setDilution(Number(e.target.value))} className="border p-2 w-full rounded-lg" />
             <p className="text-sm text-gray-500 mt-1">Expected ownership dilution from future funding rounds</p>
             <p className="text-sm text-gray-500 mt-1">Example: If you expect 3 rounds of funding with 10% dilution each, set this to 30%</p>
+        </div>
+        <div>
+          <label className="block text-lg font-semibold">Sold After (Years)</label>
+          <input type="number" value={soldAfterYears} onChange={(e) => setSoldAfterYears(Number(e.target.value))} className="border p-2 w-full rounded-lg" min="1" />
+          <p className="text-sm text-gray-500 mt-1">Number of years after which the stock is sold (assuming accelerated vesting on exit)</p>
         </div>
         <div className="col-span-1 md:col-span-2">
           <p className="text-sm text-gray-500">Based on {formatInteger(totalShares)} fully diluted shares, {percentageOfStock}% equals {formatInteger(stockOptions)} stock options</p>
