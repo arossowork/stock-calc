@@ -168,7 +168,7 @@ export default function StockOptionsCalculator() {
         <div>
           <label className="block text-lg font-semibold">Strike Price (€)</label>
           <input type="number" value={strikePrice} onChange={(e) => setStrikePrice(Number(e.target.value))} className="border p-2 w-full rounded-lg" />
-          <p className="text-sm text-gray-500 mt-1">Price you'll pay to exercise each option</p>
+          <p className="text-sm text-gray-500 mt-1">Price you&apos;ll pay to exercise each option</p>
         </div>
         <div>
           <label className="block text-lg font-semibold">Market Price at Grant (€)</label>
