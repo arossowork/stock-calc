@@ -27,6 +27,7 @@ export default function StockOptionsCalculator() {
   const [grossEquityValue, setGrossEquityValue] = useState(0);
   const [grossSoldStockValue, setGrossSoldStockValue] = useState(0);
   const [netEquityValue, setNetEquityValue] = useState(0);
+  const [equityEquivalentPercentage, setEquityEquivalentPercentage] = useState(0);
   const [netSoldValue, setNetSoldValue] = useState(0);
   const [yearlySoldValue, setYearlySoldValue] = useState(0);
   const [totalYearlyComp, setTotalYearlyComp] = useState(0);
@@ -119,6 +120,10 @@ export default function StockOptionsCalculator() {
     // Calculate the net equity value after tax
     const calculatedNetEquityValue = calculatedGrossEquityValue - calculatedExerciseTax;
     setNetEquityValue(calculatedNetEquityValue);
+
+    // Calculate the net equity percentage after tax
+    const calculatedEquityEquivalentPercentage = calculatedNetEquityValue / calculatedGrossEquityValue * 100;
+    setEquityEquivalentPercentage(calculatedEquityEquivalentPercentage);
 
     // Calculate the net sold value after tax
     const calculatedNetSoldValue = calculatedGrossSoldStockValue - calculatedTotalTax - calculatedCostOfBuyingOptions;
@@ -258,6 +263,7 @@ export default function StockOptionsCalculator() {
               <p>Effective Tax Rate: {isHydrated ? effectiveTaxRate.toFixed(2) : "0"}%</p>
             </div>
             <p>Net Equity Value (after tax): €{formatNumber(netEquityValue)}</p>
+            <p>Equivalent Net Equity Percentage (after tax): {isHydrated ? equityEquivalentPercentage.toFixed(2) : "0"}%</p>
             <p>Net Sold Value (after tax and buying): €{formatNumber(netSoldValue)}</p>
             <p>Weighted Net Sold Value ({exitProbability}% probability): €{formatNumber(weightedNetSoldValue)}</p>
             <p>Yearly Net Sold Value: €{formatNumber(yearlySoldValue)}</p>
