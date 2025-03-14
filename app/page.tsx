@@ -122,7 +122,7 @@ export default function StockOptionsCalculator() {
     setNetEquityValue(calculatedNetEquityValue);
 
     // Calculate the net equity percentage after tax
-    const calculatedEquityEquivalentPercentage = calculatedNetEquityValue / calculatedGrossEquityValue * 100;
+    const calculatedEquityEquivalentPercentage = calculatedNetEquityValue / valuation * 100;
     setEquityEquivalentPercentage(calculatedEquityEquivalentPercentage);
 
     // Calculate the net sold value after tax
